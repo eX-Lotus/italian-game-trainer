@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Italian Game Chess Opening Trainer - 26+ Variasi">
+    <title>Italian Game Master Trainer</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+        .container{max-width:1400px;margin:0 auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+        h1{text-align:center;color:#333;margin-bottom:10px;font-size:2.5em}
+        .subtitle{text-align:center;color:#666;margin-bottom:30px;font-size:1.1em}
+        .main-content{display:grid;grid-template-columns:500px 1fr;gap:30px;margin-bottom:30px}
+        .board-container{display:flex;flex-direction:column;align-items:center}
+        #myBoard{width:500px;margin-bottom:20px}
+        .hint-from{box-shadow:inset 0 0 0 5px rgba(255,193,7,.9)!important;background-color:rgba(255,193,7,.4)!important}
+        .hint-to{box-shadow:inset 0 0 0 5px rgba(40,167,69,.9)!important;background-color:rgba(40,167,69,.4)!important}
+        .selected-piece{box-shadow:inset 0 0 0 5px rgba(0,123,255,.8)!important;background-color:rgba(0,123,255,.2)!important}
+        .variation-info{background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);padding:20px;border-radius:12px;margin-top:15px;border-left:5px solid #667eea;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+        .variation-info h4{color:#667eea;margin-bottom:10px;font-size:1.1em}
+        .variation-info p{color:#555;line-height:1.6;font-size:.95em}
+        .info-panel{background:#f8f9fa;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.1);max-height:800px;overflow-y:auto}
+        .mode-selector{display:flex;gap:10px;margin-bottom:25px;flex-wrap:wrap}
+        .mode-btn{flex:1;padding:12px 20px;border:2px solid #667eea;background:#fff;color:#667eea;border-radius:8px;cursor:pointer;font-weight:700;transition:all .3s;min-width:120px}
+        .mode-btn:hover{background:#667eea;color:#fff;transform:translateY(-2px)}
+        .mode-btn.active{background:#667eea;color:#fff}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}
+        .stat-card{background:#fff;padding:15px;border-radius:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+        .stat-label{color:#666;font-size:.9em;margin-bottom:5px}
+        .stat-value{color:#667eea;font-size:1.8em;font-weight:700}
+        .move-history{background:#fff;padding:20px;border-radius:10px;max-height:180px;overflow-y:auto;margin-bottom:20px}
+        .move-history h3{color:#333;margin-bottom:15px}
+        .hint-box{background:#fff3cd;border-left:4px solid #ffc107;padding:15px;border-radius:8px;margin-bottom:20px;display:none}
+        .hint-box.show{display:block}
+        .feedback{padding:15px;border-radius:8px;margin-bottom:20px;text-align:center;font-weight:700;display:none}
+        .feedback.correct{background:#d4edda;color:#155724;border:2px solid #28a745;display:block}
+        .feedback.wrong{background:#f8d7da;color:#721c24;border:2px solid #dc3545;display:block}
+        .controls{display:flex;gap:10px;flex-wrap:wrap}
+        .btn{flex:1;padding:12px 25px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:all .3s;min-width:100px}
+        .btn-primary{background:#28a745;color:#fff}
+        .btn-primary:hover{background:#218838;transform:translateY(-2px)}
+        .btn-secondary{background:#6c757d;color:#fff}
+        .btn-secondary:hover{background:#5a6268;transform:translateY(-2px)}
+        .btn-hint{background:#ffc107;color:#333}
+        .btn-hint:hover{background:#e0a800;transform:translateY(-2px)}
+        .btn-danger{background:#dc3545;color:#fff}
+        .btn-danger:hover{background:#c82333;transform:translateY(-2px)}
+        .variation-list{background:#fff;padding:20px;border-radius:10px}
+        .variation-list h3{color:#333;margin-bottom:15px}
+        .category-title{color:#667eea;font-weight:700;margin-top:15px;margin-bottom:10px;padding:5px 0;border-bottom:2px solid #667eea}
+        .variation-item{padding:12px;margin-bottom:8px;background:#f8f9fa;border-radius:5px;cursor:pointer;transition:all .3s;border-left:4px solid transparent}
+        .variation-item:hover{background:#e9ecef;transform:translateX(5px);border-left-color:#667eea}
+        .variation-item.active{background:#e7f3ff;border-left-color:#007bff}
+        .variation-item strong{display:block;color:#333;margin-bottom:5px}
+        .variation-item small{color:#666;font-size:.85em}
+        .difficulty{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75em;margin-left:8px}
+        .difficulty.beginner{background:#d4edda;color:#155724}
+        .difficulty.intermediate{background:#fff3cd;color:#856404}
+        .difficulty.advanced{background:#f8d7da;color:#721c24}
+        .search-box{margin-bottom:20px}
+        .search-box input{width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:1em}
+        .search-box input:focus{outline:0;border-color:#667eea}
+        @media (max-width:1200px){.main-content{grid-template-columns:1fr}#myBoard{width:100%;max-width:500px}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>♟️ Italian Game Master Trainer</h1>
+        <p class="subtitle">Kuasai 26 variasi pembukaan Italian Game seperti Grandmaster!</p>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('learn')">📚 Learn</button>
+            <button class="mode-btn" onclick="setMode('practice')">💪 Practice</button>
+            <button class="mode-btn" onclick="setMode('drill')">⚡ Drill</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="board-container">
+                <div id="myBoard"></div>
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="resetGame()">🔄 Reset</button>
+                    <button class="btn btn-danger" onclick="undoMove()">↩️ Undo</button>
+                    <button class="btn btn-hint" onclick="showHint()">💡 Hint</button>
+                    <button class="btn btn-primary" onclick="nextExercise()">▶️ Next</button>
+                </div>
+                <div class="variation-info" id="variationInfo">
+                    <h4>📖 Tentang Variasi Ini</h4>
+                    <p id="variationHistory">Loading...</p>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="stats">
+                    <div class="stat-card"><div class="stat-label">Benar</div><div class="stat-value" id="correct">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Salah</div><div class="stat-value" id="wrong">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Akurasi</div><div class="stat-value" id="accuracy">0%</div></div>
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <div class="hint-box" id="hintBox"><strong>💡 Hint:</strong> <span id="hintText"></span></div>
+                <div class="move-history"><h3>📜 Riwayat Gerakan</h3><div id="moveList"></div></div>
+                <div class="variation-list">
+                    <h3>🎯 26 Variasi Italian Game</h3>
+                    <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Cari variasi..." onkeyup="filterVariations()"></div>
+                    <div id="variationsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+let board,game=new Chess(),currentMode='learn',stats={correct:0,wrong:0},currentVariation='giuoco-piano-classical',selectedSquare=null,moveHistory=[];
+
+const varData={
+'giuoco-piano-classical':{n:'Giuoco Piano - Classical',d:'beginner',h:'Giuoco Piano adalah salah satu pembukaan tertua dalam sejarah catur, pertama kali dianalisis oleh Pedro Damiano dari Portugal pada tahun 1512. Pembukaan ini kemudian dikembangkan oleh Gioachino Greco pada awal abad ke-17. Nama "Giuoco Piano" berarti "permainan yang tenang" dalam bahasa Italia.',m:['e4','e5','Nf3','Nc6','Bc4','Bc5','c3','Nf6','d3','d6','O-O','O-O'],ht:['e4 kontrol pusat','e5 respons','Nf3 serang e5','Nc6 bertahan','Bc4 Italian Game','Bc5 Giuoco Piano','c3 persiapkan d4','Nf6 kembangkan','d3 untuk posisi solid','d6 perkuat pusat','Castling keamanan raja','Hitam castling'],e:['e4 pembuka klasik membuka diagonal','e5 respons simetris','Nf3 mengembangkan dan serang e5','Nc6 membela e5','Bc4 Italian Game target f7','Bc5 Giuoco Piano','c3 persiapkan d4','Nf6 pengembangan natural','d3 Giuoco Pianissimo','d6 memperkuat pusat','O-O mengamankan raja','O-O hitam castling, seimbang']},
+'giuoco-pianissimo':{n:'Giuoco Pianissimo',d:'beginner',h:'Giuoco Pianissimo dikembangkan pada abad ke-20 sebagai varian lebih tenang dari Giuoco Piano. Nama "Pianissimo" berarti "sangat tenang" dalam bahasa Italia, mencerminkan pendekatan posisional yang lebih sabar.',m:['e4','e5','Nf3','Nc6','Bc4','Bc5','d3','Nf6','O-O','O-O','Re1','d6'],ht:['e4 kontrol pusat','e5 dari hitam','Nf3 serang e5','Nc6 bertahan','Bc4 Italian Game','Bc5 Piano','d3 Pianissimo!','Nf6 pengembangan','O-O keamanan raja','Hitam castling','Re1 persiapan e5','d6 perkuat'],e:['e4 pembukaan terbuka','e5 simetris','Nf3 tekanan e5','Nc6 solid','Bc4 target f7','Bc5 cerminkan','d3 Pianissimo - sangat tenang','Nf6 natural','O-O raja aman','O-O hitam castling','Re1 persiapan e5','d6 solid fleksibel']},
+'evans-gambit-accepted':{n:'Evans Gambit Accepted',d:'advanced',h:'Evans Gambit ditemukan oleh William Davies Evans pada tahun 1820-an. Gambit ini menjadi sangat populer pada abad ke-19 dan dimainkan oleh Adolf Anderssen dan Paul Morphy, bahkan dalam pertandingan kejuaraan dunia.',m:['e4','e5','Nf3','Nc6','Bc4','Bc5','b4','Bxb4','c3','Ba5','d4','d6','Qb3','Qd7'],ht:['e4 pembuka','e5 respons','Nf3 serang','Nc6 bertahan','Bc4 Italian','Bc5 Piano','b4 Evans Gambit!','Bxb4 terima','c3 paksa bishop','Ba5 mundur','d4 dominasi pusat','d6 bertahan','Qb3 serang f7','Qd7 bertahan'],e:['e4 kontrol pusat','e5 simetris','Nf3 pengembangan','Nc6 pertahanan','Bc4 Italian','Bc5 Piano','b4 Evans Gambit - korban pawn','Bxb4 terima','c3 paksa mundur','Ba5 posisi aman','d4 dominasi pusat','d6 solid','Qb3 tekanan f7 dan b7','Qd7 pertahankan']},
+'fried-liver':{n:'Fried Liver Attack',d:'advanced',h:'Fried Liver Attack adalah salah satu serangan tertua, dating back hingga tahun 1610. Nama "Fried Liver" dari istilah Italia "Fegatello" - metafora untuk raja hitam yang "dimasak" dalam jaring mating.',m:['e4','e5','Nf3','Nc6','Bc4','Nf6','Ng5','d5','exd5','Nxd5','Nxf7','Kxf7','Qf3+','Ke6'],ht:['e4 pembuka','e5 respons','Nf3 serang','Nc6 bertahan','Bc4 Italian','Nf6 Two Knights','Ng5 serang f7!','d5 counter','exd5 ambil','Nxd5 ambil','Nxf7 Fried Liver!','Kxf7 harus ambil','Qf3+ check','Ke6 raja maju'],e:['e4 kontrol','e5 simetris','Nf3 pengembangan','Nc6 pertahanan','Bc4 Italian','Nf6 Two Knights','Ng5 ancam Nxf7','d5 counter','exd5 ambil','Nxd5 kembali','Nxf7 Fried Liver! Korban knight','Kxf7 paksa','Qf3+ raja tidak aman','Ke6 raja ke tengah berbahaya']},
+'traxler':{n:'Traxler Counterattack',d:'advanced',h:'Traxler Counterattack dinamai menurut master Ceko Karel Traxler (1866-1936). Counter-gambit berani ini dikembangkan pada akhir abad ke-19, menciptakan serangan balik spektakuler dengan mengorbankan bishop di f2.',m:['e4','e5','Nf3','Nc6','Bc4','Nf6','Ng5','Bc5','Nxf7','Bxf2+','Kf1','Qe7'],ht:['e4 pembuka','e5 respons','Nf3 serang','Nc6 bertahan','Bc4 Italian','Nf6 Two Knights','Ng5 serang f7','Bc5 Traxler!','Nxf7 ambil','Bxf2+ counter!','Kf1 paksa','Qe7 tekanan'],e:['e4 kontrol','e5 simetris','Nf3 pengembangan','Nc6 pertahanan','Bc4 Italian','Nf6 Two Knights','Ng5 ancam f7','Bc5 Traxler - bishop aktif','Nxf7 ambil','Bxf2+ counter-sacrifice gila!','Kf1 raja bergerak','Qe7 tekanan besar raja tidak aman']},
+'hungarian-defense':{n:'Hungarian Defense',d:'beginner',h:'Hungarian Defense dikembangkan oleh master Hongaria pada abad ke-19. Dengan Be7, hitam menghindari komplikasi taktis, mencerminkan prinsip posisional solid - pengembangan aman dan struktur sehat.',m:['e4','e5','Nf3','Nc6','Bc4','Be7','d4','exd4','Nxd4','Nf6','Nc3','O-O'],ht:['e4 pembuka','e5 respons','Nf3 serang','Nc6 bertahan','Bc4 Italian','Be7 Hungarian!','d4 buka pusat','exd4 terima','Nxd4 ambil','Nf6 kembangkan','Nc3 kembangkan','O-O aman'],e:['e4 kontrol','e5 simetris','Nf3 pengembangan','Nc6 pertahanan','Bc4 Italian','Be7 Hungarian - pasif tapi solid','d4 buka','exd4 terima','Nxd4 recapture','Nf6 natural','Nc3 pengembangan','O-O aman dan solid']}
+};
+
+const varList=[
+{k:'giuoco-piano-classical',n:'Giuoco Piano - Classical',d:'beginner',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3'},
+{k:'giuoco-pianissimo',n:'Giuoco Pianissimo',d:'beginner',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.d3'},
+{k:'evans-gambit-accepted',n:'Evans Gambit Accepted',d:'advanced',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5'},
+{k:'fried-liver',n:'Fried Liver Attack',d:'advanced',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 d5 5.exd5 Nxd5 6.Nxf7'},
+{k:'traxler',n:'Traxler Counterattack',d:'advanced',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 Bc5'},
+{k:'hungarian-defense',n:'Hungarian Defense',d:'beginner',m:'1.e4 e5 2.Nf3 Nc6 3.Bc4 Be7'}
+];
+
+function renderVarList(){
+let h='<div class="category-title">🎼 Popular Variations</div>';
+varList.forEach(v=>{
+h+=`<div class="variation-item" onclick="loadVariation('${v.k}')"><strong>${v.n} <span class="difficulty ${v.d}">${v.d=='beginner'?'Pemula':v.d=='intermediate'?'Menengah':'Lanjut'}</span></strong><small>${v.m}</small></div>`;
+});
+document.getElementById('variationsList').innerHTML=h;
+}
+
+function parseMove(m){
+const tg=new Chess(game.fen()),mv=tg.move(m);
+return mv?{from:mv.from,to:mv.to}:null;
+}
+
+function showVisualHint(){
+removeHighlights();
+if(currentMode!='learn'||currentMoveIndex>=varData[currentVariation].m.length||currentMoveIndex%2!=0)return;
+const c=parseMove(varData[currentVariation].m[currentMoveIndex]);
+if(c){
+$('#myBoard .square-'+c.from).addClass('hint-from');
+$('#myBoard .square-'+c.to).addClass('hint-to');
+}
+}
+
+function removeHighlights(){$('#myBoard .square-55d63').removeClass('hint-from hint-to selected-piece')}
+
+function onSquareClick(sq){
+if(game.turn()!='w')return;
+if(selectedSquare){
+const mv=game.move({from:selectedSquare,to:sq,promotion:'q'});
+if(mv){processPlayerMove(mv)}else{
+const p=game.get(sq);
+if(p&&p.color=='w'){selectedSquare=sq;removeHighlights();$('#myBoard .square-'+sq).addClass('selected-piece');showVisualHint()}
+else{selectedSquare=null;removeHighlights();showVisualHint()}
+}
+}else{
+const p=game.get(sq);
+if(p&&p.color=='w'){selectedSquare=sq;removeHighlights();$('#myBoard .square-'+sq).addClass('selected-piece');showVisualHint()}
+}
+}
+
+function onDragStart(src,pc){return!game.game_over()&&game.turn()=='w'&&pc.search(/^b/)==-1}
+
+function onDrop(src,tgt){
+selectedSquare=null;removeHighlights();
+if(game.turn()!='w')return'snapback';
+const mv=game.move({from:src,to:tgt,promotion:'q'});
+if(!mv){showVisualHint();return'snapback'}
+processPlayerMove(mv);
+}
+
+function processPlayerMove(mv){
+const exp=varData[currentVariation].m[currentMoveIndex];
+if(mv.san==exp||mv.lan==exp){
+stats.correct++;
+moveHistory.push({fen:game.fen(),moveIndex:currentMoveIndex});
+showFeedback('correct','✅ '+varData[currentVariation].e[currentMoveIndex]);
+currentMoveIndex++;
+updateStats();
+updateMoveHistory();
+setTimeout(()=>{
+if(currentMoveIndex<varData[currentVariation].m.length)makeComputerMove();
+else{removeHighlights();showFeedback('correct','🎉 Selamat! Variasi '+varData[currentVariation].n+' selesai!')}
+},600);
+}else{
+stats.wrong++;
+showFeedback('wrong','❌ Salah! Benar: '+exp+'. '+varData[currentVariation].e[currentMoveIndex]);
+updateStats();
+game.undo();
+board.position(game.fen());
+setTimeout(()=>showVisualHint(),500);
+}
+}
+
+function makeComputerMove(){
+if(currentMoveIndex>=varData[currentVariation].m.length)return;
+const mv=game.move(varData[currentVariation].m[currentMoveIndex]);
+if(mv){
+moveHistory.push({fen:game.fen(),moveIndex:currentMoveIndex});
+board.position(game.fen());
+currentMoveIndex++;
+updateMoveHistory();
+setTimeout(()=>{
+if(currentMoveIndex<varData[currentVariation].ht.length){
+$('#hintText').text(varData[currentVariation].ht[currentMoveIndex]);
+if(currentMode=='learn'){$('#hintBox').addClass('show');showVisualHint()}
+}
+},300);
+}
+}
+
+function showFeedback(t,m){
+const f=$('#feedback');
+f.removeClass('correct wrong').addClass(t).text(m).show();
+setTimeout(()=>f.fadeOut(),4000);
+}
+
+function updateStats(){
+$('#correct').text(stats.correct);
+$('#wrong').text(stats.wrong);
+const tot=stats.correct+stats.wrong,acc=tot>0?Math.round((stats.correct/tot)*100):0;
+$('#accuracy').text(acc+'%');
+}
+
+function updateMoveHistory(){
+const h=game.history();
+let html='';
+for(let i=0;i<h.length;i+=2){
+const n=Math.floor(i/2)+1;
+html+=`<div>${n}. ${h[i]} ${h[i+1]||''}</div>`;
+}
+$('#moveList').html(html||'<em>Belum ada gerakan</em>');
+}
+
+function showHint(){
+if(currentMode=='drill'){showFeedback('wrong','❌ Tidak ada hint di mode Drill!');return}
+if(currentMoveIndex<varData[currentVariation].ht.length){
+$('#hintText').text(varData[currentVariation].ht[currentMoveIndex]);
+$('#hintBox').addClass('show');
+showVisualHint();
+setTimeout(()=>{$('#hintBox').removeClass('show');removeHighlights()},8000);
+}else showFeedback('wrong','Tidak ada hint tersedia');
+}
+
+function undoMove(){
+if(moveHistory.length<2){showFeedback('wrong','❌ Tidak ada langkah untuk di-undo!');return}
+moveHistory.pop();
+const ls=moveHistory.pop();
+if(ls){
+game.load(ls.fen);
+board.position(game.fen());
+currentMoveIndex=ls.moveIndex;
+updateMoveHistory();
+if(currentMode=='learn'&&currentMoveIndex<varData[currentVariation].ht.length){
+$('#hintText').text(varData[currentVariation].ht[currentMoveIndex]);
+$('#hintBox').addClass('show');
+showVisualHint();
+}
+showFeedback('correct','↩️ Langkah berhasil di-undo');
+}
+}
+
+function resetGame(){
+game.reset();
+board.start();
+currentMoveIndex=0;
+moveHistory=[];
+selectedSquare=null;
+removeHighlights();
+$('#hintBox').removeClass('show');
+$('#feedback').hide();
+updateMoveHistory();
+if(currentMode=='learn'&&varData[currentVariation].ht.length>0){
+setTimeout(()=>{
+$('#hintText').text(varData[currentVariation].ht[0]);
+$('#hintBox').addClass('show');
+showVisualHint();
+},500);
+}
+}
+
+function nextExercise(){
+const keys=Object.keys(varData),ci=keys.indexOf(currentVariation),ni=(ci+1)%keys.length;
+currentVariation=keys[ni];
+$('.variation-item').removeClass('active').each(function(){
+if($(this).attr('onclick').includes(currentVariation))$(this).addClass('active');
+});
+resetGame();
+$('#variationHistory').text(varData[currentVariation].h);
+showFeedback('correct','▶️ Memuat: '+varData[currentVariation].n);
+}
+
+function setMode(m){
+currentMode=m;
+$('.mode-btn').removeClass('active').each(function(){
+const bt=$(this).text().toLowerCase();
+if((m=='learn'&&bt.includes('learn'))||(m=='practice'&&bt.includes('practice'))||(m=='drill'&&bt.includes('drill')))$(this).addClass('active');
+});
+resetGame();
+const msg=m=='learn'?'📚 Mode Learn: Hint visual dan penjelasan':m=='practice'?'💪 Mode Practice: Tanpa hint otomatis':'⚡ Mode Drill: Tanpa bantuan!';
+showFeedback('correct',msg);
+}
+
+function loadVariation(vk){
+if(!varData[vk])return;
+currentVariation=vk;
+stats={correct:0,wrong:0};
+updateStats();
+$('.variation-item').removeClass('active').each(function(){
+if($(this).attr('onclick').includes(vk))$(this).addClass('active');
+});
+resetGame();
+$('#variationHistory').text(varData[vk].h);
+showFeedback('correct','🎯 Memuat: '+varData[vk].n+' ('+varData[vk].m.length+' langkah)');
+}
+
+function filterVariations(){
+const st=$('#searchInput').val().toLowerCase();
+$('.variation-item').each(function(){
+$(this).text().toLowerCase().includes(st)?$(this).show():$(this).hide();
+});
+}
+
+board=Chessboard('myBoard',{
+draggable:true,
+position:'start',
+onDragStart:onDragStart,
+onDrop:onDrop,
+onSnapEnd:()=>board.position(game.fen()),
+pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+});
+
+$('#myBoard').on('click','.square-55d63',function(){
+const sq=$(this).attr('data-square');
+if(sq)onSquareClick(sq);
+});
+
+$(document).ready(function(){
+renderVarList();
+updateStats();
+$('.variation-item').first().addClass('active');
+$('#variationHistory').text(varData[currentVariation].h);
+if(currentMode=='learn'){
+setTimeout(()=>{
+$('#hintText').text(varData[currentVariation].ht[0]);
+$('#hintBox').addClass('show');
+showVisualHint();
+},1000);
+}
+});
+    </script>
+</body>
+</html>
